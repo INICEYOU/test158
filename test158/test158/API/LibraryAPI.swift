@@ -8,6 +8,7 @@
 
 import UIKit
 import Contacts
+import CoreData
 
 class LibraryAPI: NSObject
 {
@@ -45,5 +46,12 @@ class LibraryAPI: NSObject
     func extractVCardContacts (from data: Data?) -> Set<CNContact>
     {
         return persistencyManager.extractVCardContacts(from : data)
+    }
+    
+    func insert(contacts: Set<CNContact> , coordinator: NSPersistentStoreCoordinator? , completion: @escaping () -> Void)
+    {
+        persistencyManager.insert(contacts: contacts, coordinator: coordinator) {
+            completion()
+        }
     }
 }

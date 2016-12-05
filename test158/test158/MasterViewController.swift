@@ -183,33 +183,13 @@ extension MasterViewController
         // исключить телефонные контакты из контактов, полученных из vcard
         let allContacts = vcardContacts.union(contactsFromDevice)
         
-        let privateContext = NSManagedObjectContext(concurrencyType: .privateQueueConcurrencyType)
-        privateContext.persistentStoreCoordinator = managedObjectContext?.persistentStoreCoordinator
-        privateContext.perform
-            {
-                let entity = NSEntityDescription.entity(forEntityName: "VCard", in: privateContext)
-                
-                // добавить уникальные контакты в базу
-                for contact in allContacts
-                {
-                    let vCard = VCard(entity: entity!, insertInto: privateContext)
-                    vCard.givenName = contact.givenName == "" ? "Unknown" : contact.givenName
-                    vCard.object = NSKeyedArchiver.archivedData(withRootObject: contact) as NSData?
-                    privateContext.insert(vCard)
-                }
-                
-                // Save the context.
-                do { try privateContext.save() }
-                catch {
-                    let nserror = error as NSError
-                    fatalError("Unresolved error in private context \(nserror), \(nserror.userInfo)")
-                }
-                
-                DispatchQueue.main.async {
-                    try? self._fetchedResultsController?.performFetch()
-                    self.tableView.reloadData()
-                    self.refreshControl?.endRefreshing()
-                }
+        // добавить уникальные контакты в базу
+        LibraryAPI.sharedInstance.insert(contacts: allContacts, coordinator: managedObjectContext?.persistentStoreCoordinator)
+        {
+            // выполнить по завершении
+            try? self._fetchedResultsController?.performFetch()
+            self.tableView.reloadData()
+            self.refreshControl?.endRefreshing()
         }
     }
 }

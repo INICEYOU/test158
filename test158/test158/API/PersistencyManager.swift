@@ -8,6 +8,7 @@
 
 import UIKit
 import Contacts
+import CoreData
 
 class PersistencyManager: NSObject
 {
@@ -216,6 +217,34 @@ class PersistencyManager: NSObject
             print("error in JSONSerialization")
         }
         return result
+    }
+    
+    func insert(contacts: Set<CNContact> , coordinator: NSPersistentStoreCoordinator? , completion: @escaping () -> Void)
+    {
+        let privateContext = NSManagedObjectContext(concurrencyType: .privateQueueConcurrencyType)
+        privateContext.persistentStoreCoordinator = coordinator
+        privateContext.perform
+            {
+                let entity = NSEntityDescription.entity(forEntityName: "VCard", in: privateContext)
+                
+                // добавить уникальные контакты в базу
+                for contact in contacts
+                {
+                    let vCard = VCard(entity: entity!, insertInto: privateContext)
+                    vCard.givenName = contact.givenName == "" ? "Unknown" : contact.givenName
+                    vCard.object = NSKeyedArchiver.archivedData(withRootObject: contact) as NSData?
+                    privateContext.insert(vCard)
+                }
+                
+                // Save the context.
+                do { try privateContext.save() }
+                catch {
+                    let nserror = error as NSError
+                    fatalError("Unresolved error in private context \(nserror), \(nserror.userInfo)")
+                }
+                
+                completion()
+        }
     }
     
     
