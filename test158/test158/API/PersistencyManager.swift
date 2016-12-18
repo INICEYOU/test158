@@ -12,6 +12,23 @@ import CoreData
 
 class PersistencyManager: NSObject
 {
+    fileprivate func deleteAllObjects(context: NSManagedObjectContext) {
+        
+        let entitesByName = context.persistentStoreCoordinator!.managedObjectModel.entitiesByName
+        
+        for (name, _) in entitesByName {
+            
+            let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: name)
+            let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
+            
+            do { try context.execute(deleteRequest) }
+            catch { print("handle the error") }
+        }
+        
+        try? context.save()
+        
+    }
+    
     func getContactsFromDevice () -> Set<CNContact>
     {
         var result: Set<CNContact> = []
@@ -225,6 +242,9 @@ class PersistencyManager: NSObject
         privateContext.persistentStoreCoordinator = coordinator
         privateContext.perform
             {
+                // Удалить прошлые значения в базе
+                self.deleteAllObjects(context: privateContext)
+                
                 let entity = NSEntityDescription.entity(forEntityName: "VCard", in: privateContext)
                 
                 // добавить уникальные контакты в базу

@@ -14,28 +14,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UISplitViewControllerDele
     
     var window: UIWindow?
     
-    func deleteAllObjects() {
-        
-        let entitesByName = self.managedObjectContext.persistentStoreCoordinator!.managedObjectModel.entitiesByName
-        
-        for (name, _) in entitesByName {
-            
-            let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: name)
-            let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
-            
-            do { try self.managedObjectContext.execute(deleteRequest) }
-            catch { print("handle the error") }
-        }
-        
-        try? self.managedObjectContext.save()
-        
-    }
-    
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool
     {
         // Override point for customization after application launch.
-        self.deleteAllObjects()
-        
         let splitViewController = self.window!.rootViewController as! UISplitViewController
         
         let navigationController = splitViewController.viewControllers[splitViewController.viewControllers.count-1] as! UINavigationController

@@ -183,8 +183,12 @@ extension MasterViewController
         // исключить телефонные контакты из контактов, полученных из vcard
         let allContacts = vcardContacts.union(contactsFromDevice)
         
+        guard let context = self.managedObjectContext else {
+            return
+        }
+        
         // добавить уникальные контакты в базу
-        LibraryAPI.sharedInstance.insert(contacts: allContacts, coordinator: managedObjectContext?.persistentStoreCoordinator)
+        LibraryAPI.sharedInstance.insert(contacts: allContacts, coordinator: context.persistentStoreCoordinator)
         {
             // выполнить по завершении
             try? self._fetchedResultsController?.performFetch()
